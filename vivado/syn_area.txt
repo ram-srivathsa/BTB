@@ -1,0 +1,33 @@
+Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2016.1 (lin64) Build 1538259 Fri Apr  8 15:45:23 MDT 2016
+| Date         : Tue Jun 12 11:26:28 2018
+| Host         : ram-Lenovo-ideapad-520-15IKB running 64-bit Ubuntu 16.04.4 LTS
+| Command      : report_utilization -hierarchical -file .//fpga/mkbtb/syn_area.txt
+| Design       : mkbtb
+| Device       : 7a100tcsg324-1
+| Design State : Synthesized
+------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+--------------+
+|      Instance      |           Module          | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP48 Blocks |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+--------------+
+| mkbtb              |                     (top) |        275 |        259 |      16 |    0 |  44 |      0 |      4 |            0 |
+|   (mkbtb)          |                     (top) |        255 |        255 |       0 |    0 |  42 |      0 |      0 |            0 |
+|   bram_replacement |                 BRAM2Load |         20 |          4 |      16 |    0 |   2 |      0 |      0 |            0 |
+|   bram_way1        | BRAM2Load__parameterized0 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |            0 |
+|   bram_way2        | BRAM2Load__parameterized1 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |            0 |
+|   bram_way3        | BRAM2Load__parameterized2 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |            0 |
+|   bram_way4        | BRAM2Load__parameterized3 |          0 |          0 |       0 |    0 |   0 |      0 |      1 |            0 |
++--------------------+---------------------------+------------+------------+---------+------+-----+--------+--------+--------------+
+
+
