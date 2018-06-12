@@ -12,4 +12,4 @@ Results:
 
 On testing the BTB(4 way set associative,256 entries each) with the Dhrystone benchmark, 8 misses were reported for the first 1000 cache accesses which corresponds to a hit rate of 99.2%. The same 8 misses were reported for the first 100 as well as for the first 50 accesses which corresponds to hit rates of 92% and 84% respectively.
 
-In Vivado, the design was found to have a maximum operating frequency of 400MHz on an Artix 7 board. The utilization reports may be found in the 'vivado' folder.
+In Vivado, the design was found to have a maximum operating frequency of 377MHz on an Artix 7 board. The utilization reports may be found in the 'vivado' folder.
