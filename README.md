@@ -9,6 +9,8 @@ The 'btb' folder contains the .bsv file for the BTB. It is a 4 way set associati
 
 The 'verilog' folder contains the .v files for the project while the 'vivado' folder contains the vivado project file as well as the syn_area.txt and syn_timing.txt files that provide the utilization and timing reports respectively.
 
+The file 'analysis.txt' contains information about hit rates of the BTB for different number of ways and number of entries when tested with the Dhrystone benchmark.
+
 Results: 
 
 On testing the BTB(4 way set associative,256 entries each) with the Dhrystone benchmark, 8 misses were reported for the first 1000 cache accesses which corresponds to a hit rate of 99.2%. The same 8 misses were reported for the first 100 as well as for the first 50 accesses which corresponds to hit rates of 92% and 84% respectively.
