@@ -2,6 +2,7 @@
 Branch Target Buffer in Bluespec
 
 Author:Ram Srivathsa Sankar
+
 Mentor:Rahul Bodduna
 
 The 'btb' folder contains the .bsv file for the BTB. It is a 4 way set associative cache with each way having 256 entries for now(subject to change after further analysis). Round robin algorithm is followed for entry replacement. The 'Testbench' folder contains the .bsv file for the testbench, the .dump files for testing the Dhrystone benchmark and the .dump files for initializing the ways.
