@@ -17,7 +17,10 @@ typedef Bit#(`BTB_TAG) Gv_btb_tag;
 typedef Bit#(`BTB_VAL) Gv_btb_val;
 typedef Bit#(TLog#(`NUM_WAYS)) Gv_ways;
 typedef Bit#(`PC_SIZE) Gv_pc;
-typedef struct{Bool hit;Gv_ways way_num;Gv_pc branch_pc;} Gv_return deriving(Bits);
+//structure for the value returned by the mn_get method
+typedef struct{Bool hit;Gv_ways way_num;Gv_pc branch_pc;} Gv_return_btb deriving(Bits);
+//structure for the value used to update btb in case of miss
+typedef struct{Gv_pc pc;Gv_btb_val branch_imm;Gv_ways way_num;} Gv_update_btb deriving(Bits);
 
 //for debugging
 String file_way1="way1.dump";
@@ -38,9 +41,9 @@ interface Ifc_btb;
 	//method to enter pc value into btb
 	method Action ma_put(Gv_pc pc);
 	//method to get branch target pc from btb & way number & whether hit or miss
-	method Gv_return mn_get;
+	method Gv_return_btb mn_get;
 	//method to update the btb
-	method Action ma_update(Gv_pc pc,Gv_btb_val branch_imm,Gv_ways way_num);
+	method Action ma_update(Gv_update_btb update_val);
 	//method to flush btb
 	method Action ma_flush;
 endinterface
@@ -55,13 +58,7 @@ module mkbtb(Ifc_btb);
 	BRAM_DUAL_PORT#(Gv_btb_addr,Gv_btb_data) bram_way3 <- mkBRAMCore2Load(`BTB_SIZE,False,file_way3,True);
 	BRAM_DUAL_PORT#(Gv_btb_addr,Gv_btb_data) bram_way4 <- mkBRAMCore2Load(`BTB_SIZE,False,file_way4,True);
 	BRAM_DUAL_PORT#(Gv_btb_addr,Gv_ways) bram_replacement <- mkBRAMCore2Load(`BTB_SIZE,False,file_repl,True);
-
-	//outputs from the btb ways and the replacement bits bank
-	Wire#(Gv_btb_data) wr_way1_out <- mkWire;
-	Wire#(Gv_btb_data) wr_way2_out <- mkWire;
-	Wire#(Gv_btb_data) wr_way3_out <- mkWire;
-	Wire#(Gv_btb_data) wr_way4_out <- mkWire;
-	Wire#(Gv_ways) wr_replacement_bits <- mkWire;	
+	
 	//number of the way to be replaced
 	Wire#(Gv_ways) wr_way_num <- mkWire;
 
@@ -77,23 +74,16 @@ module mkbtb(Ifc_btb);
 	//address while flushing
 	Wire#(Bit#(TAdd#(TLog#(`BTB_SIZE),1))) rg_flush_addr <- mkReg(0);
 		
-	//reads bram outputs onto wires; 
-	rule rl_read_ways;
-		wr_way1_out<= bram_way1.a.read();
-		wr_way2_out<= bram_way2.a.read();
-		wr_way3_out<= bram_way3.a.read();
-		wr_way4_out<= bram_way4.a.read();
-		wr_replacement_bits<= bram_replacement.a.read();
-	endrule
-
 	//reads outputs from brams;compares tag of each way with upper 22 pc bits and puts branch target pc onto wr_branch_pc
 	rule rl_compare;
-		Gv_btb_data lv_way1_out= wr_way1_out;
-		Gv_btb_data lv_way2_out= wr_way2_out;
-		Gv_btb_data lv_way3_out= wr_way3_out;
-		Gv_btb_data lv_way4_out= wr_way4_out;
+		Gv_btb_data lv_way1_out= bram_way1.a.read();
+		Gv_btb_data lv_way2_out= bram_way2.a.read();
+		Gv_btb_data lv_way3_out= bram_way3.a.read();
+		Gv_btb_data lv_way4_out= bram_way4.a.read();
 
 		Bit#(20) lv_gnd=0;
+		
+		Gv_pc lv_imm;
 
 		Bit#(1) lv_compare1= fn_compare(lv_way1_out[34:13],rg_pc_copy[31:10]);
 		Bit#(1) lv_compare2= fn_compare(lv_way2_out[34:13],rg_pc_copy[31:10]);
@@ -113,7 +103,8 @@ module mkbtb(Ifc_btb);
 		begin
 			if(lv_valid1)
 			begin
-				wr_branch_pc<= {lv_gnd,lv_way1_out[12:1]}+rg_pc_copy;
+				lv_imm= signExtend(lv_way1_out[12:1]);
+				wr_branch_pc<= lv_imm+rg_pc_copy;
 				wr_hit<= True;
 				wr_way_num<= ?;
 			end
@@ -130,7 +121,8 @@ module mkbtb(Ifc_btb);
 		begin
 			if(lv_valid2)
 			begin
-				wr_branch_pc<= {lv_gnd,lv_way2_out[12:1]}+rg_pc_copy;
+				lv_imm= signExtend(lv_way2_out[12:1]);
+				wr_branch_pc<= lv_imm+rg_pc_copy;
 				wr_hit<= True;
 				wr_way_num<= ?;
 			end
@@ -147,7 +139,8 @@ module mkbtb(Ifc_btb);
 		begin
 			if(lv_valid3)
 			begin
-				wr_branch_pc<= {lv_gnd,lv_way3_out[12:1]}+rg_pc_copy;
+				lv_imm= signExtend(lv_way3_out[12:1]);
+				wr_branch_pc<= lv_imm+rg_pc_copy;
 				wr_hit<= True;
 				wr_way_num<= ?;
 			end
@@ -164,7 +157,8 @@ module mkbtb(Ifc_btb);
 		begin
 			if(lv_valid4)
 			begin
-				wr_branch_pc<= {lv_gnd,lv_way4_out[12:1]}+rg_pc_copy;
+				lv_imm= signExtend(lv_way4_out[12:1]);
+				wr_branch_pc<= lv_imm+rg_pc_copy;
 				wr_hit<= True;
 				wr_way_num<= ?;
 			end
@@ -217,8 +211,8 @@ module mkbtb(Ifc_btb);
 	endmethod
 
 	//returns branch target pc,the way to be replaced
-	method Gv_return mn_get;
-		Gv_return return_vals;
+	method Gv_return_btb mn_get;
+		Gv_return_btb return_vals;
 		return_vals.hit= wr_hit;
 		return_vals.way_num= wr_way_num;
 		return_vals.branch_pc= wr_branch_pc;
@@ -226,7 +220,11 @@ module mkbtb(Ifc_btb);
 	endmethod
 
 	//updates in case of miss
-	method Action ma_update(Gv_pc pc,Gv_btb_val branch_imm,Gv_ways way_num) if (!rg_flush);
+	method Action ma_update(Gv_update_btb update_val) if (!rg_flush);
+		let way_num=update_val.way_num;
+		let branch_imm=update_val.branch_imm;
+		let pc=update_val.pc;
+
 		case(way_num)
 		//way1
 		2'b00:
